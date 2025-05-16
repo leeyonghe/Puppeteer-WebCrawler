@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - DB_HOST=mysql
+      - DB_USER=scraper_user
+      - DB_PASSWORD=${DB_PASSWORD:-scraper_$(openssl rand -base64 12)}
+      - DB_NAME=web_scraper
+    depends_on:
+      - mysql
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      - scraper-network
+
+  mysql:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-root_$(openssl rand -base64 12)}
+      - MYSQL_DATABASE=web_scraper
+      - MYSQL_USER=scraper_user
+      - MYSQL_PASSWORD=${DB_PASSWORD:-scraper_$(openssl rand -base64 12)}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - scraper-network
+
+volumes:
+  mysql-data:
+
+networks:
+  scraper-network:
+    driver: bridge 
